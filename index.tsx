@@ -1,0 +1,1 @@
+// This file is deprecated. Use main.tsx for the application entry point.

@@ -1,0 +1,5 @@
+{
+  "name": "Calculadora de Financiamento Imobiliário",
+  "description": "Um aplicativo para comparar os custos de um financiamento imobiliário imediato versus um financiamento na entrega das chaves, considerando bônus, percentual de financiamento e correção pelo INCC.",
+  "requestFramePermissions": []
+}
