@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-// @ts-ignore
 import html2pdf from 'html2pdf.js';
 import { calculateFinancing, formatCurrency } from './services/calculationService';
 import type { CalculationInput, CalculationResult } from './types';
@@ -109,7 +108,7 @@ const App: React.FC = () => {
               <div className="p-6 border-b border-slate-50 bg-gradient-to-r from-slate-50 to-white">
                 <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                   <Calculator className="text-brand-primary" size={20} />
-                  Parâmetros da Simulação
+                  Parâmetros do Imóvel
                 </h2>
                 <p className="text-sm text-slate-500 mt-1">Ajuste os valores para comparar cenários.</p>
               </div>
@@ -201,7 +200,7 @@ const App: React.FC = () => {
                         type="number"
                       />
                       <InputField
-                        label="Juros Obra"
+                        label="Taxa Juros Obra"
                         name="interestRate"
                         value={input.interestRate}
                         onChange={handleInputChange}
