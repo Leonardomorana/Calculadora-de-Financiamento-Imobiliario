@@ -4,7 +4,7 @@ import { calculateFinancing, formatCurrency } from './services/calculationServic
 import type { CalculationInput, CalculationResult } from './types';
 import InputField from './components/InputField';
 import ResultsDisplay from './components/ResultsDisplay';
-import { DollarSign, Percent, Banknote, Building, KeyRound, Info, BarChart2, Calculator, ArrowRight, TrendingDown, Tag, Sparkles, FileDown } from 'lucide-react';
+import { DollarSign, Percent, Banknote, Building, KeyRound, Info, BarChart2, Calculator, ArrowRight, TrendingDown, Tag, FileDown } from 'lucide-react';
 
 const App: React.FC = () => {
   const [input, setInput] = useState<CalculationInput>({
