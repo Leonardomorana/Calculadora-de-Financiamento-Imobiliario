@@ -103,7 +103,7 @@ const App: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Coluna de Inputs (Esquerda) */}
-          <div className="lg:col-span-4 xl:col-span-4 space-y-6">
+          <div className="lg:col-span-4 xl:col-span-4 space-y-6 sticky top-24">
             <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/60 overflow-hidden border border-slate-100">
               <div className="p-6 border-b border-slate-50 bg-gradient-to-r from-slate-50 to-white">
                 <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">

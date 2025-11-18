@@ -5,21 +5,38 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Calculadora de Financiamento</title>
-  <script type="importmap">
+    <!-- Tailwind CDN para Preview Rápido (Fallback) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'brand-primary': '#1e40af',
+              'brand-secondary': '#1d4ed8',
+              'brand-accent': '#2563eb',
+              'brand-light': '#dbeafe',
+              'brand-dark': '#1e3a8a',
+            },
+          },
+        },
+      }
+    </script>
+    <script type="importmap">
 {
   "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-dom/": "https://esm.sh/react-dom@18.2.0/",
+    "react": "https://esm.sh/react@18.2.0",
+    "recharts": "https://esm.sh/recharts@2.12.0?external=react,react-dom",
+    "lucide-react": "https://esm.sh/lucide-react@0.344.0?external=react",
+    "html2pdf.js": "https://esm.sh/html2pdf.js@0.10.1",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "recharts": "https://aistudiocdn.com/recharts@^3.4.1",
     "vite": "https://aistudiocdn.com/vite@^7.2.2",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
-    "html2pdf.js": "https://aistudiocdn.com/html2pdf.js@^0.12.1"
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
   }
 }
 </script>
-</head>
+  </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/main.tsx"></script>
