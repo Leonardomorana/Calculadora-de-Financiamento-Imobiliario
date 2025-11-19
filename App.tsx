@@ -243,7 +243,7 @@ const App: React.FC = () => {
                         inputClassName="text-sm sm:text-base"
                       />
                       <InputField
-                        label="Juros Obra"
+                        label="Taxa de Juros"
                         name="interestRate"
                         value={input.interestRate}
                         onChange={handleInputChange}
