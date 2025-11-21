@@ -58,7 +58,7 @@ const App: React.FC = () => {
       const opt = {
         margin: 5,
         filename: `simulacao-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
+        image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { 
             scale: 2, 
             useCORS: true,

@@ -127,7 +127,7 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenario, icon, isWinner, d
                      <span className="text-[10px] font-bold uppercase">Custos Cartoriais (POA/RS)</span>
                    </div>
                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-500">ITBI (3%)</span>
+                      <span className="text-slate-500">ITBI</span>
                       <span className="font-semibold text-slate-700">
                         + {formatCurrency(scenario.itbiAmount || 0)}
                       </span>
