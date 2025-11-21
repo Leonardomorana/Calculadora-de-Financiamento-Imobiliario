@@ -13,6 +13,7 @@ declare module 'html2pdf.js' {
         image?: { type: string; quality: number };
         html2canvas?: any;
         jsPDF?: { unit: string; format: string; orientation: string };
+        pagebreak?: { mode: string[] | string };
     }
 
     interface Html2PdfWorker {
@@ -23,6 +24,5 @@ declare module 'html2pdf.js' {
         get(type: string): Html2PdfWorker;
     }
 
-    function html2pdf(): Html2PdfWorker;
-    export default html2pdf;
+    export default function html2pdf(): Html2PdfWorker;
 }

@@ -52,28 +52,34 @@ const App: React.FC = () => {
     const element = document.getElementById('simulation-report');
     
     if (element) {
-      // Adiciona classe temporária para ocultar a barra fixa do PDF
+      // Adiciona classe temporária para ajustes de CSS
       document.body.classList.add('printing-pdf');
       
       const opt = {
-        margin: 5,
+        margin: [10, 10, 10, 10] as [number, number, number, number], // Margens: Top, Left, Bottom, Right (mm)
         filename: `simulacao-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
+        image: { type: 'jpeg' as const, quality: 1 }, // Qualidade máxima
         html2canvas: { 
-            scale: 2, 
+            scale: 2, // Melhora resolução
             useCORS: true,
+            scrollY: 0,
+            windowWidth: 1400, // Força largura de desktop para manter layout lado a lado
             ignoreElements: (element: Element) => {
-                // Ignora botões e elementos marcados
                 return element.hasAttribute('data-html2canvas-ignore');
             }
         },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // Evita cortar componentes ao meio
       };
 
-      html2pdf().set(opt).from(element).save().then(() => {
-        setIsExporting(false);
-        document.body.classList.remove('printing-pdf');
-      });
+      // Pequeno delay para garantir que o React renderizou o estado "isExporting" (cabeçalho do PDF)
+      setTimeout(() => {
+          html2pdf().set(opt).from(element).save().then(() => {
+            setIsExporting(false);
+            document.body.classList.remove('printing-pdf');
+          });
+      }, 100);
+
     } else {
         setIsExporting(false);
     }
@@ -91,72 +97,87 @@ const App: React.FC = () => {
   }, [input.salePrice, input.bonus]);
 
   return (
-    <div id="simulation-report" className="bg-slate-50 min-h-screen font-sans text-slate-800 selection:bg-brand-primary selection:text-white pb-24 lg:pb-0">
+    <div id="simulation-report" className={`bg-slate-50 min-h-screen font-sans text-slate-800 selection:bg-brand-primary selection:text-white ${isExporting ? '' : 'pb-24 lg:pb-0'}`}>
       
+      {/* Estilos injetados apenas durante a exportação para limpar o PDF */}
+      {isExporting && (
+        <style>{`
+          .printing-pdf .shadow-xl, .printing-pdf .shadow-lg, .printing-pdf .shadow-sm { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+          .printing-pdf .backdrop-blur-md { backdrop-filter: none !important; background: white !important; }
+          .printing-pdf .sticky { position: static !important; }
+          .printing-pdf .bg-slate-50 { background-color: #fff !important; }
+          .pdf-break-inside-avoid { page-break-inside: avoid; }
+        `}</style>
+      )}
+
       {/* Cabeçalho exclusivo para PDF */}
       {isExporting && (
-        <div className="hidden print-header bg-white border-b border-slate-200 p-8 mb-8">
+        <div className="bg-white border-b-2 border-brand-primary p-8 mb-4">
            <div className="flex justify-between items-center">
               <div>
-                 <h1 className="text-2xl font-bold text-brand-primary">Relatório de Simulação Imobiliária</h1>
-                 <p className="text-slate-500 text-sm mt-1">Comparativo: Imediato vs Nas Chaves</p>
+                 <h1 className="text-3xl font-bold text-brand-primary">Relatório de Simulação Imobiliária</h1>
+                 <p className="text-slate-600 mt-2 text-lg">Comparativo Detalhado: Financiamento Imediato vs Nas Chaves</p>
               </div>
               <div className="text-right">
-                 <p className="text-xs text-slate-400">Gerado em</p>
-                 <p className="font-medium text-slate-700">{new Date().toLocaleString('pt-BR')}</p>
+                 <div className="bg-slate-100 px-4 py-2 rounded-lg">
+                    <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Data da Simulação</p>
+                    <p className="font-mono text-slate-800 text-lg">{new Date().toLocaleString('pt-BR')}</p>
+                 </div>
               </div>
            </div>
         </div>
       )}
 
-      {/* Header Moderno com Glassmorphism */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 transition-all" data-html2canvas-ignore>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-brand-primary text-white p-2 rounded-lg shadow-sm">
-              <Banknote size={24} />
+      {/* Header da Aplicação (Oculto no PDF se desejar, ou simplificado) */}
+      {!isExporting && (
+        <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 transition-all" data-html2canvas-ignore>
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+                <div className="bg-brand-primary text-white p-2 rounded-lg shadow-sm">
+                <Banknote size={24} />
+                </div>
+                <h1 className="text-lg md:text-xl font-bold text-slate-800 tracking-tight">
+                Simulador Imobiliário
+                </h1>
             </div>
-            <h1 className="text-lg md:text-xl font-bold text-slate-800 tracking-tight">
-              Simulador Imobiliário
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
-            {results && (
-                <button 
-                  onClick={handleExportPDF}
-                  disabled={isExporting}
-                  className="flex items-center gap-2 text-xs font-medium text-brand-primary bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
-                >
-                   <FileDown size={16} />
-                   <span className="hidden sm:inline">{isExporting ? 'Gerando PDF...' : 'Baixar PDF'}</span>
-                   <span className="sm:hidden">PDF</span>
-                </button>
-            )}
-            <div className="hidden md:flex items-center gap-2 text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                Sistema online
+            <div className="flex items-center gap-3">
+                {results && (
+                    <button 
+                    onClick={handleExportPDF}
+                    disabled={isExporting}
+                    className="flex items-center gap-2 text-xs font-medium text-brand-primary bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                    <FileDown size={16} />
+                    <span className="hidden sm:inline">{isExporting ? 'Gerando PDF...' : 'Baixar PDF'}</span>
+                    <span className="sm:hidden">PDF</span>
+                    </button>
+                )}
+                <div className="hidden md:flex items-center gap-2 text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    Sistema online
+                </div>
             </div>
-          </div>
-        </div>
-      </header>
+            </div>
+        </header>
+      )}
       
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
           
           {/* Coluna de Inputs (Esquerda) */}
-          <div className="lg:col-span-4 xl:col-span-4 space-y-6 lg:sticky lg:top-24">
+          <div className={`lg:col-span-4 xl:col-span-4 space-y-6 pdf-break-inside-avoid ${isExporting ? '' : 'lg:sticky lg:top-24'}`}>
             <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/60 overflow-hidden border border-slate-100">
               <div className="p-5 lg:p-6 border-b border-slate-50 bg-gradient-to-r from-slate-50 to-white">
                 <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                   <Calculator className="text-brand-primary" size={20} />
                   Parâmetros do Imóvel
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-500 mt-1">Ajuste os valores para comparar cenários.</p>
+                {!isExporting && <p className="text-xs sm:text-sm text-slate-500 mt-1">Ajuste os valores para comparar cenários.</p>}
               </div>
               
               <div className="p-5 lg:p-6 space-y-6 lg:space-y-8">
-                {/* Seção 1: Condições Comerciais (Visual Melhorado) */}
-                <div className="space-y-4">
+                {/* Seção 1: Condições Comerciais */}
+                <div className="space-y-4 pdf-break-inside-avoid">
                    <div className="flex items-center gap-2 text-brand-dark/80 mb-2">
                       <Tag size={16} />
                       <h3 className="text-xs font-bold uppercase tracking-wider">Negociação</h3>
@@ -207,9 +228,9 @@ const App: React.FC = () => {
                    </div>
                 </div>
 
-                {/* Display da Entrada (Separador Visual) */}
-                <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-brand-primary to-brand-dark p-4 sm:p-5 text-white shadow-lg shadow-blue-900/20">
-                  <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+                {/* Display da Entrada */}
+                <div className="pdf-break-inside-avoid relative overflow-hidden rounded-xl bg-gradient-to-br from-brand-primary to-brand-dark p-4 sm:p-5 text-white shadow-lg shadow-blue-900/20">
+                  {!isExporting && <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>}
                   <div className="relative z-10">
                     <div className="flex items-center gap-2 opacity-90 mb-1">
                       <Info size={14} />
@@ -225,7 +246,7 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Seção 2: Correção e Obras */}
-                <div className="space-y-4">
+                <div className="space-y-4 pdf-break-inside-avoid">
                    <div className="flex items-center gap-2 text-brand-dark/80 mb-2">
                       <KeyRound size={16} />
                       <h3 className="text-xs font-bold uppercase tracking-wider">Custos e Prazos</h3>
@@ -268,27 +289,29 @@ const App: React.FC = () => {
                 </div>
               </div>
               
-              {/* Botão Desktop (Visível apenas LG+) */}
-              <div className="hidden lg:block p-4 bg-slate-50 border-t border-slate-100" data-html2canvas-ignore>
-                <button
-                    onClick={handleCalculate}
-                    className="group w-full bg-brand-secondary hover:bg-brand-dark text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-600/20 transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.98]"
-                  >
-                    <span className="text-lg">Calcular e Comparar</span>
-                    <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
-                  </button>
-              </div>
+              {/* Botão Desktop */}
+              {!isExporting && (
+                <div className="hidden lg:block p-4 bg-slate-50 border-t border-slate-100" data-html2canvas-ignore>
+                    <button
+                        onClick={handleCalculate}
+                        className="group w-full bg-brand-secondary hover:bg-brand-dark text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-blue-600/20 transition-all duration-200 flex items-center justify-center gap-2 active:scale-[0.98]"
+                    >
+                        <span className="text-lg">Calcular e Comparar</span>
+                        <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
+                    </button>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Coluna de Resultados (Direita) */}
-          <div id="results-section" className="lg:col-span-8 xl:col-span-8">
+          <div id="results-section" className="lg:col-span-8 xl:col-span-8 pdf-break-inside-avoid">
             {results ? (
               <ResultsDisplay results={results} />
             ) : (
               <div className="h-full min-h-[300px] md:min-h-[500px] flex flex-col items-center justify-center bg-white p-6 md:p-12 rounded-2xl shadow-sm border border-slate-200 text-center">
                 <div className="relative mb-6 md:mb-8">
-                  <div className="absolute inset-0 bg-blue-100 rounded-full blur-xl opacity-50 animate-pulse"></div>
+                  {!isExporting && <div className="absolute inset-0 bg-blue-100 rounded-full blur-xl opacity-50 animate-pulse"></div>}
                   <div className="relative bg-white p-4 md:p-6 rounded-full shadow-sm border border-slate-100">
                      <BarChart2 size={48} className="md:w-16 md:h-16 text-brand-secondary opacity-90" />
                   </div>
@@ -319,7 +342,7 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {/* Sticky Action Bar Mobile */}
+      {/* Sticky Action Bar Mobile (Oculto no PDF) */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 p-4 lg:hidden z-40 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]" data-html2canvas-ignore>
           <button
             onClick={handleCalculate}
