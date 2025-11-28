@@ -43,6 +43,7 @@ export const calculateFinancing = (input: CalculationInput): CalculationResult =
     constructionMonths,
     inccRate,
     interestRate,
+    isImmediateFeesFree,
   } = input;
 
   const monthlyInccRate = inccRate / 100;
@@ -78,14 +79,28 @@ export const calculateFinancing = (input: CalculationInput): CalculationResult =
   }
   const immediateCorrectionOnOwnResource = totalCorrectedImmediateDownPayment - immediateDownPayment;
 
+  // 3. Taxas de Escritura e Registro (Imediato)
+  // Se não houver isenção, calcula sobre o valor de venda COM BÔNUS (preço da transação)
+  let immediateFees = 0;
+  let immediateItbi = 0;
+  let immediateRegistry = 0;
+  
+  if (!isImmediateFeesFree) {
+    immediateItbi = calculateITBIPoa(immediateBasePrice);
+    immediateRegistry = calculateRegistryFeeRS(immediateBasePrice);
+    immediateFees = immediateItbi + immediateRegistry;
+  }
+
   const immediateFinancing: ScenarioResult = {
     scenarioName: 'Financiamento Imediato',
     financedAmount: immediateFinancedAmount,
-    // Total Pago = Principal (Financiado) + Entrada Corrigida + Juros Obra
-    totalPaid: immediateFinancedAmount + totalCorrectedImmediateDownPayment + totalConstructionInterest, 
+    // Total Pago = Principal + Entrada Corrigida + Juros Obra + Taxas (se houver)
+    totalPaid: immediateFinancedAmount + totalCorrectedImmediateDownPayment + totalConstructionInterest + immediateFees, 
     totalInterest: totalConstructionInterest, // Mantém Juros de Obra como principal custo financeiro para display
     constructionInterest: totalConstructionInterest,
-    correctionOwnResource: immediateCorrectionOnOwnResource, // Nova correção adicionada
+    correctionOwnResource: immediateCorrectionOnOwnResource,
+    itbiAmount: immediateItbi,
+    registryFee: immediateRegistry,
     downPayment: immediateDownPayment,
     financingPercentage: immediateFinancingPct
   };

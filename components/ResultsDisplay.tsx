@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import type { CalculationResult, ScenarioResult } from '../types';
@@ -13,6 +14,8 @@ interface ScenarioCardProps {
 
 const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenario, icon, isWinner, difference }) => {
   const isImmediate = scenario.scenarioName.includes('Imediato');
+  // Verifica se existem taxas calculadas (pode ser 0 se houve isenção)
+  const hasFees = (scenario.itbiAmount || 0) + (scenario.registryFee || 0) > 0;
 
   return (
     <div className={`group relative overflow-hidden rounded-2xl transition-all duration-300 h-full flex flex-col ${
@@ -84,7 +87,7 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenario, icon, isWinner, d
 
            {/* Detalhes Específicos por Cenário */}
            {isImmediate ? (
-             // CENÁRIO IMEDIATO: Mostra Juros de Obra + Correção RP
+             // CENÁRIO IMEDIATO: Mostra Juros de Obra + Correção RP + Taxas (se houver)
              <>
                 <div className="space-y-2">
                     <div className="flex justify-between items-center text-sm">
@@ -104,7 +107,7 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenario, icon, isWinner, d
                 </div>
              </>
            ) : (
-             // CENÁRIO CHAVES: Mostra Correções INCC + TAXAS POA
+             // CENÁRIO CHAVES: Mostra Correções INCC
              <>
                <div className="space-y-2">
                  <div className="flex justify-between items-center text-sm">
@@ -119,29 +122,32 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenario, icon, isWinner, d
                       + {formatCurrency(scenario.correctionOwnResource || 0)}
                     </span>
                  </div>
-                 
-                 {/* Seção de Taxas POA */}
-                 <div className="pt-2 mt-2 border-t border-slate-100">
-                   <div className="flex items-center gap-1 text-slate-400 mb-1">
-                     <FileText size={12} />
-                     <span className="text-[10px] font-bold uppercase">Custos Cartoriais (POA/RS)</span>
-                   </div>
-                   <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-500">ITBI</span>
-                      <span className="font-semibold text-slate-700">
-                        + {formatCurrency(scenario.itbiAmount || 0)}
-                      </span>
-                   </div>
-                   <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-500">Registro de Imóveis</span>
-                      <span className="font-semibold text-slate-700">
-                        + {formatCurrency(scenario.registryFee || 0)}
-                      </span>
-                   </div>
-                 </div>
                </div>
              </>
            )}
+
+           {/* Seção de Taxas (Comum a ambos se houver valor) */}
+           {hasFees && (
+             <div className="pt-2 mt-2 border-t border-slate-100">
+               <div className="flex items-center gap-1 text-slate-400 mb-1">
+                 <FileText size={12} />
+                 <span className="text-[10px] font-bold uppercase">Custos Cartoriais (POA/RS)</span>
+               </div>
+               <div className="flex justify-between items-center text-sm">
+                  <span className="text-slate-500">ITBI</span>
+                  <span className="font-semibold text-slate-700">
+                    + {formatCurrency(scenario.itbiAmount || 0)}
+                  </span>
+               </div>
+               <div className="flex justify-between items-center text-sm">
+                  <span className="text-slate-500">Registro de Imóveis</span>
+                  <span className="font-semibold text-slate-700">
+                    + {formatCurrency(scenario.registryFee || 0)}
+                  </span>
+               </div>
+             </div>
+           )}
+
         </div>
       </div>
 
@@ -224,8 +230,8 @@ const ComparisonSummary: React.FC<{ results: CalculationResult }> = ({ results }
               </h3>
               <p className="text-slate-300 text-sm md:text-base max-w-md leading-relaxed">
                 {isImmediateWinner 
-                  ? "O cenário imediato aproveita o bônus de desconto, evita taxas cartoriais elevadas e congela o saldo devedor, superando os custos de juros de obra."
-                  : "Neste caso, os custos do financiamento imediato superam as correções e taxas do financiamento na entrega."}
+                  ? "O cenário imediato aproveita o bônus de desconto e congela o saldo devedor. Mesmo com juros de obra, o custo total é menor que a inflação acumulada e o preço cheio do financiamento na entrega."
+                  : "Neste caso excepcional, os custos acumulados do financiamento imediato superam as correções do financiamento na entrega."}
               </p>
             </div>
           </div>
@@ -259,6 +265,7 @@ const ResultsDisplay: React.FC<{ results: CalculationResult }> = ({ results }) =
       "Entrada": immediateFinancing.downPayment,
       "Juros Obra": immediateFinancing.constructionInterest || 0,
       "INCC (Entrada)": immediateFinancing.correctionOwnResource || 0,
+      "Taxas (ITBI/RI)": (immediateFinancing.itbiAmount || 0) + (immediateFinancing.registryFee || 0),
       total: immediateFinancing.totalPaid,
       isWinner: isImmediateWinner
     },
@@ -330,7 +337,7 @@ const ResultsDisplay: React.FC<{ results: CalculationResult }> = ({ results }) =
               <Legend iconType="circle" wrapperStyle={{paddingTop: '20px'}}/>
               
               {/* Base Comum */}
-              <Bar dataKey="Principal" stackId="a" fill="#94a3b8" name="Valor Financiado" />
+              <Bar dataKey="Principal" stackId="a" fill="#94a3b8" name="Valor Financiado" radius={[0, 0, 4, 4]} />
               <Bar dataKey="Entrada" stackId="a" fill="#64748b" name="Recurso Próprio" />
               
               {/* Custos Imediato */}
@@ -339,12 +346,14 @@ const ResultsDisplay: React.FC<{ results: CalculationResult }> = ({ results }) =
               {/* Custos Nas Chaves e Imediato (INCC Entrada) */}
               <Bar dataKey="INCC (Dívida)" stackId="a" fill="#e11d48" name="INCC s/ Financiamento" />
               <Bar dataKey="INCC (Entrada)" stackId="a" fill="#f43f5e" name="INCC s/ Entrada" />
-              <Bar dataKey="Taxas (ITBI/RI)" stackId="a" fill="#9f1239" name="Taxas (ITBI/RI)" />
+              
+              {/* Taxas ITBI/RI (Agora para ambos os lados) */}
+              <Bar dataKey="Taxas (ITBI/RI)" stackId="a" fill="#9f1239" name="Taxas (ITBI/RI)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
         <p className="text-center text-xs text-slate-400 mt-4">
-          Nota: Taxas de ITBI e Registro (POA/RS) incluídas no cenário "Nas Chaves". Bônus aplicado apenas no "Imediato".
+          Nota: Taxas de ITBI e Registro (POA/RS) incluídas se não houver isenção. Bônus aplicado apenas no "Imediato".
         </p>
       </div>
     </div>

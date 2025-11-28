@@ -6,6 +6,7 @@ export interface CalculationInput {
   constructionMonths: number;
   inccRate: number;
   interestRate: number; // Taxa de juros anual para cálculo do Juros de Obra
+  isImmediateFeesFree: boolean; // Controle de gratuidade documental no cenário Imediato
 }
 
 export interface ScenarioResult {

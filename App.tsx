@@ -4,7 +4,7 @@ import { calculateFinancing, formatCurrency } from './services/calculationServic
 import type { CalculationInput, CalculationResult } from './types';
 import InputField from './components/InputField';
 import ResultsDisplay from './components/ResultsDisplay';
-import { DollarSign, Percent, Banknote, Building, KeyRound, Info, BarChart2, Calculator, ArrowRight, TrendingDown, Tag, FileDown } from 'lucide-react';
+import { DollarSign, Percent, Banknote, Building, KeyRound, Info, BarChart2, Calculator, ArrowRight, TrendingDown, Tag, FileDown, Check } from 'lucide-react';
 
 const App: React.FC = () => {
   const [input, setInput] = useState<CalculationInput>({
@@ -14,13 +14,17 @@ const App: React.FC = () => {
     constructionMonths: 30,
     inccRate: 0.5,
     interestRate: 9.5, // Default interest rate
+    isImmediateFeesFree: true, // Padrão: Isenção ativa
   });
   const [results, setResults] = useState<CalculationResult | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setInput(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
+    const { name, value, type, checked } = e.target;
+    setInput(prev => ({ 
+        ...prev, 
+        [name]: type === 'checkbox' ? checked : (parseFloat(value) || 0) 
+    }));
   };
 
   const handleCalculate = () => {
@@ -178,9 +182,11 @@ const App: React.FC = () => {
               <div className="p-5 lg:p-6 space-y-6 lg:space-y-8">
                 {/* Seção 1: Condições Comerciais */}
                 <div className="space-y-4 pdf-break-inside-avoid">
-                   <div className="flex items-center gap-2 text-brand-dark/80 mb-2">
-                      <Tag size={16} />
-                      <h3 className="text-xs font-bold uppercase tracking-wider">Negociação</h3>
+                   <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2 text-brand-dark/80">
+                         <Tag size={16} />
+                         <h3 className="text-xs font-bold uppercase tracking-wider">Negociação</h3>
+                      </div>
                    </div>
                    
                    <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-100 space-y-4">
@@ -225,6 +231,25 @@ const App: React.FC = () => {
                           inputClassName="text-sm sm:text-base"
                         />
                       </div>
+                      
+                      {/* Toggle de Isenção */}
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-200 mt-2">
+                        <label className="text-xs font-semibold text-slate-600 cursor-pointer select-none" htmlFor="isImmediateFeesFree">
+                           Isenção ITBI/Registro (Imediato)
+                        </label>
+                        <div className="relative inline-block w-10 mr-2 align-middle select-none">
+                            <input 
+                                type="checkbox" 
+                                name="isImmediateFeesFree" 
+                                id="isImmediateFeesFree" 
+                                checked={input.isImmediateFeesFree}
+                                onChange={handleInputChange}
+                                className="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 ease-in-out checked:right-0 right-5 border-slate-300 checked:border-brand-accent checked:bg-brand-accent shadow-sm"
+                            />
+                            <label htmlFor="isImmediateFeesFree" className={`toggle-label block overflow-hidden h-5 rounded-full cursor-pointer transition-colors duration-300 ${input.isImmediateFeesFree ? 'bg-brand-light' : 'bg-slate-200'}`}></label>
+                        </div>
+                      </div>
+
                    </div>
                 </div>
 
