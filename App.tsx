@@ -68,7 +68,7 @@ const App: React.FC = () => {
             scale: 2, 
             useCORS: true,
             scrollY: 0,
-            windowWidth: 1600, // Largura virtual alta para forçar layout desktop compacto
+            windowWidth: 1280, // CORREÇÃO: 1280px ativa o layout Desktop do Tailwind nativamente
             ignoreElements: (element: Element) => {
                 return element.hasAttribute('data-html2canvas-ignore');
             }
@@ -113,7 +113,7 @@ const App: React.FC = () => {
       {/* Estilos injetados apenas durante a exportação para limpar e compactar o PDF */}
       {isExporting && (
         <style>{`
-          /* Reset básico */
+          /* Reset básico para PDF */
           .printing-pdf .shadow-xl, .printing-pdf .shadow-lg, .printing-pdf .shadow-sm { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
           .printing-pdf .backdrop-blur-md { backdrop-filter: none !important; background: white !important; }
           .printing-pdf .sticky { position: static !important; }
@@ -122,40 +122,42 @@ const App: React.FC = () => {
           /* Evita quebras de página dentro de elementos chave */
           .pdf-break-inside-avoid { page-break-inside: avoid !important; break-inside: avoid !important; }
           
-          /* Compactação Extrema de Layout */
-          .printing-pdf .container { max-width: 100% !important; padding-left: 8px !important; padding-right: 8px !important; }
-          .printing-pdf .py-6, .printing-pdf .py-8 { padding-top: 8px !important; padding-bottom: 8px !important; }
-          .printing-pdf .gap-6, .printing-pdf .gap-8 { gap: 12px !important; }
+          /* LAYOUT FIXO - Resolve Distorção */
+          .printing-pdf .container { 
+            max-width: 1280px !important; 
+            width: 1280px !important; 
+            padding-left: 16px !important; 
+            padding-right: 16px !important; 
+            margin: 0 auto !important;
+          }
           
-          /* Layout Grid Rígido para PDF */
-          .printing-pdf .grid-cols-1 { display: grid !important; grid-template-columns: repeat(12, minmax(0, 1fr)) !important; }
-          .printing-pdf .lg\\:col-span-4 { grid-column: span 4 / span 4 !important; }
-          .printing-pdf .lg\\:col-span-8 { grid-column: span 8 / span 8 !important; }
+          /* Otimização de Espaçamento */
+          .printing-pdf .py-6, .printing-pdf .py-8 { padding-top: 8px !important; padding-bottom: 8px !important; }
+          .printing-pdf .gap-6, .printing-pdf .gap-8 { gap: 16px !important; }
           
           /* Redução de Paddings Internos dos Cards */
-          .printing-pdf .p-5, .printing-pdf .p-6, .printing-pdf .p-8 { padding: 10px !important; }
-          .printing-pdf .space-y-6 { space-y: 10px !important; }
-          .printing-pdf .space-y-4 { space-y: 6px !important; }
-          .printing-pdf .mb-8 { margin-bottom: 12px !important; }
+          .printing-pdf .p-5, .printing-pdf .p-6, .printing-pdf .p-8 { padding: 12px !important; }
+          .printing-pdf .space-y-6 { space-y: 12px !important; }
+          .printing-pdf .space-y-4 { space-y: 8px !important; }
+          .printing-pdf .mb-8 { margin-bottom: 16px !important; }
           .printing-pdf .h-16 { height: auto !important; min-height: 30px !important; }
-          .printing-pdf .p-4 { padding: 8px !important; }
           
-          /* Tipografia Compacta */
-          .printing-pdf h1 { font-size: 18px !important; }
-          .printing-pdf h2 { font-size: 14px !important; }
-          .printing-pdf h3 { font-size: 12px !important; }
-          .printing-pdf .text-3xl { font-size: 18px !important; }
-          .printing-pdf .text-2xl { font-size: 16px !important; }
-          .printing-pdf .text-lg { font-size: 13px !important; }
-          .printing-pdf .text-sm { font-size: 11px !important; }
-          .printing-pdf .text-xs { font-size: 9px !important; }
+          /* Tipografia levemente reduzida para caber */
+          .printing-pdf h1 { font-size: 20px !important; }
+          .printing-pdf h2 { font-size: 16px !important; }
+          .printing-pdf h3 { font-size: 14px !important; }
+          .printing-pdf .text-3xl { font-size: 20px !important; }
+          .printing-pdf .text-2xl { font-size: 18px !important; }
+          .printing-pdf .text-lg { font-size: 14px !important; }
+          .printing-pdf .text-sm { font-size: 12px !important; }
+          .printing-pdf .text-xs { font-size: 10px !important; }
           
           /* Ocultar elementos decorativos pesados */
           .printing-pdf .blur-3xl, .printing-pdf .blur-2xl, .printing-pdf .blur-xl { display: none !important; }
           
           /* Ajustes de Input para Impressão */
           .printing-pdf input { border: none !important; background: transparent !important; padding: 0 !important; font-weight: bold !important; color: #334155 !important; height: auto !important; }
-          .printing-pdf label { margin-bottom: 0 !important; font-size: 9px !important; }
+          .printing-pdf label { margin-bottom: 0 !important; font-size: 10px !important; }
           .printing-pdf .border { border-color: #cbd5e1 !important; }
         `}</style>
       )}
