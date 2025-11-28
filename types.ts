@@ -22,6 +22,11 @@ export interface ScenarioResult {
   itbiAmount?: number;
   registryFee?: number;
   
+  // Campos para exibição demonstrativa quando há isenção
+  potentialItbiAmount?: number;
+  potentialRegistryFee?: number;
+  feesWaived?: boolean;
+  
   // Novos campos para suportar entradas diferentes
   downPayment: number;
   financingPercentage: number;

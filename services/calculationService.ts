@@ -80,14 +80,18 @@ export const calculateFinancing = (input: CalculationInput): CalculationResult =
   const immediateCorrectionOnOwnResource = totalCorrectedImmediateDownPayment - immediateDownPayment;
 
   // 3. Taxas de Escritura e Registro (Imediato)
-  // Se não houver isenção, calcula sobre o valor de venda COM BÔNUS (preço da transação)
+  // Calcula SEMPRE o valor potencial para exibição demonstrativa
+  const calculatedItbi = calculateITBIPoa(immediateBasePrice);
+  const calculatedRegistry = calculateRegistryFeeRS(immediateBasePrice);
+  
   let immediateFees = 0;
   let immediateItbi = 0;
   let immediateRegistry = 0;
   
+  // Se NÃO houver isenção, os valores entram no custo total
   if (!isImmediateFeesFree) {
-    immediateItbi = calculateITBIPoa(immediateBasePrice);
-    immediateRegistry = calculateRegistryFeeRS(immediateBasePrice);
+    immediateItbi = calculatedItbi;
+    immediateRegistry = calculatedRegistry;
     immediateFees = immediateItbi + immediateRegistry;
   }
 
@@ -99,8 +103,16 @@ export const calculateFinancing = (input: CalculationInput): CalculationResult =
     totalInterest: totalConstructionInterest, // Mantém Juros de Obra como principal custo financeiro para display
     constructionInterest: totalConstructionInterest,
     correctionOwnResource: immediateCorrectionOnOwnResource,
+    
+    // Valores reais pagos (0 se isento)
     itbiAmount: immediateItbi,
     registryFee: immediateRegistry,
+    
+    // Valores potenciais para display demonstrativo e flag
+    potentialItbiAmount: calculatedItbi,
+    potentialRegistryFee: calculatedRegistry,
+    feesWaived: isImmediateFeesFree,
+    
     downPayment: immediateDownPayment,
     financingPercentage: immediateFinancingPct
   };

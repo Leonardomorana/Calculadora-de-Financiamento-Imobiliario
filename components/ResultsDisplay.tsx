@@ -14,8 +14,11 @@ interface ScenarioCardProps {
 
 const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenario, icon, isWinner, difference }) => {
   const isImmediate = scenario.scenarioName.includes('Imediato');
-  // Verifica se existem taxas calculadas (pode ser 0 se houve isenção)
+  
+  // Verifica se existem taxas calculadas (valor pago > 0) OU se foram isentas (feesWaived true)
   const hasFees = (scenario.itbiAmount || 0) + (scenario.registryFee || 0) > 0;
+  const showDemonstrativeFees = scenario.feesWaived; 
+  const shouldShowFeesSection = hasFees || showDemonstrativeFees;
 
   return (
     <div className={`group relative overflow-hidden rounded-2xl transition-all duration-300 h-full flex flex-col pdf-break-inside-avoid ${
@@ -126,24 +129,44 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenario, icon, isWinner, d
              </>
            )}
 
-           {/* Seção de Taxas (Comum a ambos se houver valor) */}
-           {hasFees && (
+           {/* Seção de Taxas (Comum a ambos se houver valor OU se for isento) */}
+           {shouldShowFeesSection && (
              <div className="pt-2 mt-2 border-t border-slate-100">
-               <div className="flex items-center gap-1 text-slate-400 mb-1">
-                 <FileText size={12} />
-                 <span className="text-[10px] font-bold uppercase">Custos Cartoriais (POA/RS)</span>
+               <div className="flex items-center justify-between mb-1">
+                   <div className="flex items-center gap-1 text-slate-400">
+                     <FileText size={12} />
+                     <span className="text-[10px] font-bold uppercase">Custos Cartoriais (POA/RS)</span>
+                   </div>
+                   {scenario.feesWaived && (
+                       <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                           ISENTO
+                       </span>
+                   )}
                </div>
+               
                <div className="flex justify-between items-center text-sm">
                   <span className="text-slate-500">ITBI</span>
-                  <span className="font-semibold text-slate-700">
-                    + {formatCurrency(scenario.itbiAmount || 0)}
-                  </span>
+                  {scenario.feesWaived ? (
+                      <span className="text-xs text-slate-400 line-through decoration-slate-300">
+                          {formatCurrency(scenario.potentialItbiAmount || 0)}
+                      </span>
+                  ) : (
+                      <span className="font-semibold text-slate-700">
+                        + {formatCurrency(scenario.itbiAmount || 0)}
+                      </span>
+                  )}
                </div>
                <div className="flex justify-between items-center text-sm">
                   <span className="text-slate-500">Registro de Imóveis</span>
-                  <span className="font-semibold text-slate-700">
-                    + {formatCurrency(scenario.registryFee || 0)}
-                  </span>
+                   {scenario.feesWaived ? (
+                      <span className="text-xs text-slate-400 line-through decoration-slate-300">
+                          {formatCurrency(scenario.potentialRegistryFee || 0)}
+                      </span>
+                  ) : (
+                      <span className="font-semibold text-slate-700">
+                        + {formatCurrency(scenario.registryFee || 0)}
+                      </span>
+                  )}
                </div>
              </div>
            )}
