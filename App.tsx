@@ -72,7 +72,7 @@ const App: React.FC = () => {
                 return element.hasAttribute('data-html2canvas-ignore');
             }
         },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' as const },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // Evita cortar componentes ao meio
       };
 
