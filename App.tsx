@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import html2pdf from 'html2pdf.js';
 import { calculateFinancing, formatCurrency } from './services/calculationService';
@@ -76,13 +77,13 @@ const App: React.FC = () => {
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // Evita cortar componentes ao meio
       };
 
-      // Pequeno delay para garantir que o React renderizou o estado "isExporting" (cabeçalho do PDF)
+      // Delay aumentado para 300ms para garantir que o React renderizou o estado "isExporting" (cabeçalho do PDF) e os gráficos se estabilizaram
       setTimeout(() => {
           html2pdf().set(opt).from(element).save().then(() => {
             setIsExporting(false);
             document.body.classList.remove('printing-pdf');
           });
-      }, 100);
+      }, 300);
 
     } else {
         setIsExporting(false);

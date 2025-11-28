@@ -18,7 +18,7 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenario, icon, isWinner, d
   const hasFees = (scenario.itbiAmount || 0) + (scenario.registryFee || 0) > 0;
 
   return (
-    <div className={`group relative overflow-hidden rounded-2xl transition-all duration-300 h-full flex flex-col ${
+    <div className={`group relative overflow-hidden rounded-2xl transition-all duration-300 h-full flex flex-col pdf-break-inside-avoid ${
       isWinner 
         ? 'bg-gradient-to-br from-white to-emerald-50/50 border-2 border-emerald-500 shadow-xl shadow-emerald-100/50 ring-1 ring-emerald-200' 
         : 'bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300'
@@ -54,7 +54,7 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenario, icon, isWinner, d
             </div>
           </div>
           {isWinner && (
-            <div className="bg-emerald-500 text-white p-1.5 rounded-full shadow-sm animate-pulse">
+            <div className="bg-emerald-500 text-white p-1.5 rounded-full shadow-sm">
               <Award size={18} />
             </div>
           )}
@@ -196,7 +196,7 @@ const ComparisonSummary: React.FC<{ results: CalculationResult }> = ({ results }
   
   if (costDifference === 0) {
      return (
-        <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center mb-8 flex flex-col items-center gap-2">
+        <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center mb-8 flex flex-col items-center gap-2 pdf-break-inside-avoid">
             <div className="bg-slate-200 p-3 rounded-full text-slate-500">
               <Coins size={24} />
             </div>
@@ -207,7 +207,7 @@ const ComparisonSummary: React.FC<{ results: CalculationResult }> = ({ results }
   }
 
   return (
-    <div className="relative overflow-hidden bg-slate-900 text-white rounded-2xl shadow-2xl shadow-slate-900/20 mb-8">
+    <div className="relative overflow-hidden bg-slate-900 text-white rounded-2xl shadow-2xl shadow-slate-900/20 mb-8 pdf-break-inside-avoid">
       {/* Abstract Background Pattern */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary rounded-full blur-3xl opacity-20 -mr-16 -mt-16"></div>
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-brand-accent rounded-full blur-3xl opacity-20 -ml-10 -mb-10"></div>
@@ -300,7 +300,7 @@ const ResultsDisplay: React.FC<{ results: CalculationResult }> = ({ results }) =
         />
       </div>
 
-      <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+      <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 pdf-break-inside-avoid">
         <div className="flex items-center justify-between mb-8">
           <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
             <div className="w-1 h-6 bg-brand-secondary rounded-full"></div>
@@ -313,7 +313,11 @@ const ResultsDisplay: React.FC<{ results: CalculationResult }> = ({ results }) =
         
         <div style={{ width: '100%', height: 350 }}>
           <ResponsiveContainer>
-            <BarChart data={chartData} margin={{ top: 20, right: 10, left: 10, bottom: 5 }} barSize={60}>
+            <BarChart 
+                data={chartData} 
+                margin={{ top: 20, right: 10, left: 10, bottom: 5 }} 
+                barSize={60}
+            >
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis 
                 dataKey="name" 
@@ -329,6 +333,7 @@ const ResultsDisplay: React.FC<{ results: CalculationResult }> = ({ results }) =
                 tick={{fill: '#94a3b8', fontSize: 12}}
                 width={50}
               />
+              {/* Tooltip deve ser simples ou oculta para PDF, mas html2canvas lida bem se estática. */}
               <Tooltip 
                 cursor={{fill: '#f8fafc'}}
                 formatter={(value: number) => formatCurrency(value)}
@@ -336,19 +341,19 @@ const ResultsDisplay: React.FC<{ results: CalculationResult }> = ({ results }) =
               />
               <Legend iconType="circle" wrapperStyle={{paddingTop: '20px'}}/>
               
-              {/* Base Comum */}
-              <Bar dataKey="Principal" stackId="a" fill="#94a3b8" name="Valor Financiado" radius={[0, 0, 4, 4]} />
-              <Bar dataKey="Entrada" stackId="a" fill="#64748b" name="Recurso Próprio" />
+              {/* Base Comum - isAnimationActive={false} para PDF */}
+              <Bar isAnimationActive={false} dataKey="Principal" stackId="a" fill="#94a3b8" name="Valor Financiado" radius={[0, 0, 4, 4]} />
+              <Bar isAnimationActive={false} dataKey="Entrada" stackId="a" fill="#64748b" name="Recurso Próprio" />
               
               {/* Custos Imediato */}
-              <Bar dataKey="Juros Obra" stackId="a" fill="#d97706" name="Juros de Obra" />
+              <Bar isAnimationActive={false} dataKey="Juros Obra" stackId="a" fill="#d97706" name="Juros de Obra" />
               
               {/* Custos Nas Chaves e Imediato (INCC Entrada) */}
-              <Bar dataKey="INCC (Dívida)" stackId="a" fill="#e11d48" name="INCC s/ Financiamento" />
-              <Bar dataKey="INCC (Entrada)" stackId="a" fill="#f43f5e" name="INCC s/ Entrada" />
+              <Bar isAnimationActive={false} dataKey="INCC (Dívida)" stackId="a" fill="#e11d48" name="INCC s/ Financiamento" />
+              <Bar isAnimationActive={false} dataKey="INCC (Entrada)" stackId="a" fill="#f43f5e" name="INCC s/ Entrada" />
               
               {/* Taxas ITBI/RI (Agora para ambos os lados) */}
-              <Bar dataKey="Taxas (ITBI/RI)" stackId="a" fill="#9f1239" name="Taxas (ITBI/RI)" radius={[4, 4, 0, 0]} />
+              <Bar isAnimationActive={false} dataKey="Taxas (ITBI/RI)" stackId="a" fill="#9f1239" name="Taxas (ITBI/RI)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
