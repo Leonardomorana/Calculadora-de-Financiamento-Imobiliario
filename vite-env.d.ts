@@ -10,7 +10,7 @@ declare module 'html2pdf.js' {
         filename?: string;
         image?: { type: string; quality: number };
         html2canvas?: any;
-        jsPDF?: { unit: string; format: string; orientation: string };
+        jsPDF?: { unit: string; format: string; orientation: 'portrait' | 'landscape' | string };
         pagebreak?: { mode: string | string[]; before?: string[]; after?: string[]; avoid?: string[] };
     }
 

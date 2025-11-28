@@ -63,9 +63,9 @@ const App: React.FC = () => {
       const opt = {
         margin: [10, 10, 10, 10] as [number, number, number, number], // Margens: Top, Left, Bottom, Right (mm)
         filename: `simulacao-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`,
-        image: { type: 'jpeg' as const, quality: 1 }, // Qualidade máxima
+        image: { type: 'jpeg' as const, quality: 0.98 }, // Alta qualidade
         html2canvas: { 
-            scale: 2, // Melhora resolução
+            scale: 2, // Melhora resolução (Retina)
             useCORS: true,
             scrollY: 0,
             windowWidth: 1400, // Força largura de desktop para manter layout lado a lado
@@ -112,6 +112,31 @@ const App: React.FC = () => {
           .printing-pdf .sticky { position: static !important; }
           .printing-pdf .bg-slate-50 { background-color: #fff !important; }
           .pdf-break-inside-avoid { page-break-inside: avoid; }
+          
+          /* Printer-friendly overrides for Dark Elements */
+          .printing-pdf .bg-slate-900 { 
+            background-color: #ffffff !important; 
+            color: #0f172a !important; 
+            border: 2px solid #0f172a !important; 
+          }
+          .printing-pdf .bg-slate-900 h3, 
+          .printing-pdf .bg-slate-900 span.text-white,
+          .printing-pdf .bg-slate-900 p.text-white {
+             color: #0f172a !important;
+          }
+          .printing-pdf .bg-slate-900 p.text-slate-300 {
+             color: #475569 !important;
+          }
+          .printing-pdf .bg-slate-900 .bg-white\\/5 {
+             background-color: #f8fafc !important;
+             border: 1px solid #e2e8f0 !important;
+          }
+          /* Adjust accent colors on white background */
+          .printing-pdf .bg-slate-900 .text-emerald-400 { color: #059669 !important; }
+          .printing-pdf .bg-slate-900 .text-emerald-300 { color: #059669 !important; }
+          
+          /* Hide decorative blobs/gradients for cleaner print */
+          .printing-pdf .blur-3xl, .printing-pdf .blur-2xl, .printing-pdf .blur-xl { display: none !important; }
         `}</style>
       )}
 
@@ -124,7 +149,7 @@ const App: React.FC = () => {
                  <p className="text-slate-600 mt-2 text-lg">Comparativo Detalhado: Financiamento Imediato vs Nas Chaves</p>
               </div>
               <div className="text-right">
-                 <div className="bg-slate-100 px-4 py-2 rounded-lg">
+                 <div className="bg-slate-100 px-4 py-2 rounded-lg border border-slate-200">
                     <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Data da Simulação</p>
                     <p className="font-mono text-slate-800 text-lg">{new Date().toLocaleString('pt-BR')}</p>
                  </div>
@@ -133,7 +158,7 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* Header da Aplicação (Oculto no PDF se desejar, ou simplificado) */}
+      {/* Header da Aplicação (Oculto no PDF) */}
       {!isExporting && (
         <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 transition-all" data-html2canvas-ignore>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -256,7 +281,7 @@ const App: React.FC = () => {
 
                 {/* Display da Entrada */}
                 <div className="pdf-break-inside-avoid relative overflow-hidden rounded-xl bg-gradient-to-br from-brand-primary to-brand-dark p-4 sm:p-5 text-white shadow-lg shadow-blue-900/20">
-                  {!isExporting && <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>}
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mt-4 -mr-4"></div>
                   <div className="relative z-10">
                     <div className="flex items-center gap-2 opacity-90 mb-1">
                       <Info size={14} />
