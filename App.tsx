@@ -5,7 +5,7 @@ import { calculateFinancing, formatCurrency } from './services/calculationServic
 import type { CalculationInput, CalculationResult } from './types';
 import InputField from './components/InputField';
 import ResultsDisplay from './components/ResultsDisplay';
-import { DollarSign, Percent, Banknote, Building, KeyRound, Info, BarChart2, Calculator, ArrowRight, TrendingDown, Tag, FileDown, Check } from 'lucide-react';
+import { DollarSign, Percent, Banknote, Building, KeyRound, Info, BarChart2, Calculator, ArrowRight, TrendingDown, Tag, FileDown } from 'lucide-react';
 
 const App: React.FC = () => {
   const [input, setInput] = useState<CalculationInput>({
@@ -61,29 +61,29 @@ const App: React.FC = () => {
       document.body.classList.add('printing-pdf');
       
       const opt = {
-        margin: [10, 10, 10, 10] as [number, number, number, number], // Margens: Top, Left, Bottom, Right (mm)
+        margin: [5, 5, 5, 5] as [number, number, number, number], // Margens reduzidas
         filename: `simulacao-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 }, // Alta qualidade
+        image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { 
-            scale: 2, // Melhora resolução (Retina)
+            scale: 2, 
             useCORS: true,
             scrollY: 0,
-            windowWidth: 1400, // Força largura de desktop para manter layout lado a lado
+            windowWidth: 1600, // Aumentado para "afastar" o zoom e caber mais conteúdo
             ignoreElements: (element: Element) => {
                 return element.hasAttribute('data-html2canvas-ignore');
             }
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' as const },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // Evita cortar componentes ao meio
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
 
-      // Delay aumentado para 300ms para garantir que o React renderizou o estado "isExporting" (cabeçalho do PDF) e os gráficos se estabilizaram
+      // Delay para renderização
       setTimeout(() => {
           html2pdf().set(opt).from(element).save().then(() => {
             setIsExporting(false);
             document.body.classList.remove('printing-pdf');
           });
-      }, 300);
+      }, 500);
 
     } else {
         setIsExporting(false);
@@ -107,11 +107,37 @@ const App: React.FC = () => {
       {/* Estilos injetados apenas durante a exportação para limpar o PDF */}
       {isExporting && (
         <style>{`
+          /* Reset básico e limpeza */
           .printing-pdf .shadow-xl, .printing-pdf .shadow-lg, .printing-pdf .shadow-sm { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
           .printing-pdf .backdrop-blur-md { backdrop-filter: none !important; background: white !important; }
           .printing-pdf .sticky { position: static !important; }
           .printing-pdf .bg-slate-50 { background-color: #fff !important; }
           .pdf-break-inside-avoid { page-break-inside: avoid; }
+          
+          /* Compactação de Layout */
+          .printing-pdf .container { max-width: 100% !important; padding-left: 10px !important; padding-right: 10px !important; }
+          .printing-pdf .py-6, .printing-pdf .py-8 { padding-top: 10px !important; padding-bottom: 10px !important; }
+          .printing-pdf .gap-6, .printing-pdf .gap-8 { gap: 16px !important; }
+          
+          /* Forçar Layout Lado a Lado (Simulando Grid Desktop via Flex ou Grid fixo) */
+          .printing-pdf .grid-cols-1 { display: grid !important; grid-template-columns: repeat(12, minmax(0, 1fr)) !important; }
+          .printing-pdf .lg\\:col-span-4 { grid-column: span 4 / span 4 !important; }
+          .printing-pdf .lg\\:col-span-8 { grid-column: span 8 / span 8 !important; }
+          
+          /* Redução de Paddings Internos dos Cards */
+          .printing-pdf .p-5, .printing-pdf .p-6, .printing-pdf .p-8 { padding: 12px !important; }
+          .printing-pdf .space-y-6 { space-y: 12px !important; }
+          .printing-pdf .space-y-4 { space-y: 8px !important; }
+          .printing-pdf .mb-8 { margin-bottom: 16px !important; }
+          .printing-pdf .h-16 { height: auto !important; min-height: 40px !important; }
+          
+          /* Tipografia Compacta */
+          .printing-pdf h1 { font-size: 20px !important; }
+          .printing-pdf h2 { font-size: 16px !important; }
+          .printing-pdf h3 { font-size: 14px !important; }
+          .printing-pdf .text-3xl { font-size: 20px !important; }
+          .printing-pdf .text-2xl { font-size: 18px !important; }
+          .printing-pdf .text-lg { font-size: 14px !important; }
           
           /* Printer-friendly overrides for Dark Elements */
           .printing-pdf .bg-slate-900 { 
@@ -135,23 +161,28 @@ const App: React.FC = () => {
           .printing-pdf .bg-slate-900 .text-emerald-400 { color: #059669 !important; }
           .printing-pdf .bg-slate-900 .text-emerald-300 { color: #059669 !important; }
           
-          /* Hide decorative blobs/gradients for cleaner print */
+          /* Hide decorative blobs/gradients */
           .printing-pdf .blur-3xl, .printing-pdf .blur-2xl, .printing-pdf .blur-xl { display: none !important; }
+          
+          /* Input adjustments */
+          .printing-pdf input { border: none !important; background: transparent !important; padding: 0 !important; font-weight: bold !important; color: #334155 !important; }
+          .printing-pdf label { margin-bottom: 0 !important; font-size: 10px !important; }
+          .printing-pdf .border { border-color: #cbd5e1 !important; }
         `}</style>
       )}
 
       {/* Cabeçalho exclusivo para PDF */}
       {isExporting && (
-        <div className="bg-white border-b-2 border-brand-primary p-8 mb-4">
+        <div className="bg-white border-b-2 border-brand-primary p-4 mb-2">
            <div className="flex justify-between items-center">
               <div>
-                 <h1 className="text-3xl font-bold text-brand-primary">Relatório de Simulação Imobiliária</h1>
-                 <p className="text-slate-600 mt-2 text-lg">Comparativo Detalhado: Financiamento Imediato vs Nas Chaves</p>
+                 <h1 className="text-2xl font-bold text-brand-primary">Relatório de Simulação Imobiliária</h1>
+                 <p className="text-slate-600 text-sm">Comparativo: Financiamento Imediato vs Nas Chaves</p>
               </div>
               <div className="text-right">
-                 <div className="bg-slate-100 px-4 py-2 rounded-lg border border-slate-200">
-                    <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Data da Simulação</p>
-                    <p className="font-mono text-slate-800 text-lg">{new Date().toLocaleString('pt-BR')}</p>
+                 <div className="bg-slate-50 px-3 py-1 rounded border border-slate-200">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Data da Simulação</p>
+                    <p className="font-mono text-slate-800 text-sm">{new Date().toLocaleString('pt-BR')}</p>
                  </div>
               </div>
            </div>
