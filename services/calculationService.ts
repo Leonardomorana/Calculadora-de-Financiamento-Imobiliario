@@ -18,9 +18,17 @@ export const formatCurrencyShort = (value: number): string => {
   return formatCurrency(value);
 };
 
-// Cálculo ITBI Porto Alegre (3% padrão)
-const calculateITBIPoa = (value: number): number => {
-  return value * 0.03;
+// Cálculo ITBI Porto Alegre (Regra Financiamento: 0.5% sobre financiado, 3% sobre recurso próprio)
+const calculateITBIPoa = (totalValue: number, financedAmount: number = 0): number => {
+  // Garante que o financiado não seja maior que o total (proteção básica)
+  const effectiveFinanced = Math.min(financedAmount, totalValue);
+  const ownResource = totalValue - effectiveFinanced;
+
+  // Alíquotas
+  const rateFinanced = 0.005; // 0.5%
+  const rateStandard = 0.03;  // 3.0%
+
+  return (effectiveFinanced * rateFinanced) + (ownResource * rateStandard);
 };
 
 // Estimativa simplificada da Tabela de Emolumentos de Registro de Imóveis (RS) - Base 2024/2025
@@ -81,7 +89,8 @@ export const calculateFinancing = (input: CalculationInput): CalculationResult =
 
   // 3. Taxas de Escritura e Registro (Imediato)
   // Calcula SEMPRE o valor potencial para exibição demonstrativa
-  const calculatedItbi = calculateITBIPoa(immediateBasePrice);
+  // Aplica regra de financiamento (0.5% no financiado, 3% no recurso próprio)
+  const calculatedItbi = calculateITBIPoa(immediateBasePrice, immediateFinancedAmount);
   const calculatedRegistry = calculateRegistryFeeRS(immediateBasePrice);
   
   let immediateFees = 0;
@@ -146,7 +155,8 @@ export const calculateFinancing = (input: CalculationInput): CalculationResult =
 
   // 3. Taxas de Escritura e Registro (Porto Alegre / RS)
   // Calculadas sobre o valor de venda CHEIO (sem desconto)
-  const itbi = calculateITBIPoa(keysBasePrice);
+  // Também aplica regra de financiamento pois assume-se que o cliente fará SFH nas chaves
+  const itbi = calculateITBIPoa(keysBasePrice, keysFinancedAmount);
   const registry = calculateRegistryFeeRS(keysBasePrice);
   const totalFees = itbi + registry;
 
