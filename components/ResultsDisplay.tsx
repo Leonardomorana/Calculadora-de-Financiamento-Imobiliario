@@ -102,7 +102,7 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenario, icon, isWinner, d
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-500">Correção s/ Rec. Próprio</span>
+                      <span className="text-slate-500">Correção sobre Rec. Próprio</span>
                       <span className="font-semibold text-rose-600">
                         + {formatCurrency(scenario.correctionOwnResource || 0)}
                       </span>
@@ -114,13 +114,13 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({ scenario, icon, isWinner, d
              <>
                <div className="space-y-2">
                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-500">Correção s/ Financiamento</span>
+                    <span className="text-slate-500">Correção sobre Financiamento</span>
                     <span className="font-semibold text-rose-600">
                       + {formatCurrency(scenario.correctionFinancing || 0)}
                     </span>
                  </div>
                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-500">Correção s/ Rec. Próprio</span>
+                    <span className="text-slate-500">Correção sobre Rec. Próprio</span>
                     <span className="font-semibold text-rose-600">
                       + {formatCurrency(scenario.correctionOwnResource || 0)}
                     </span>
@@ -372,8 +372,8 @@ const ResultsDisplay: React.FC<{ results: CalculationResult }> = ({ results }) =
               <Bar isAnimationActive={false} dataKey="Juros Obra" stackId="a" fill="#d97706" name="Juros de Obra" />
               
               {/* Custos Nas Chaves e Imediato (INCC Entrada) */}
-              <Bar isAnimationActive={false} dataKey="INCC (Dívida)" stackId="a" fill="#e11d48" name="INCC s/ Financiamento" />
-              <Bar isAnimationActive={false} dataKey="INCC (Entrada)" stackId="a" fill="#f43f5e" name="INCC s/ Entrada" />
+              <Bar isAnimationActive={false} dataKey="INCC (Dívida)" stackId="a" fill="#e11d48" name="INCC sobre Financiamento" />
+              <Bar isAnimationActive={false} dataKey="INCC (Entrada)" stackId="a" fill="#f43f5e" name="INCC sobre Entrada" />
               
               {/* Taxas ITBI/RI (Agora para ambos os lados) */}
               <Bar isAnimationActive={false} dataKey="Taxas (ITBI/RI)" stackId="a" fill="#9f1239" name="Taxas (ITBI/RI)" radius={[4, 4, 0, 0]} />
