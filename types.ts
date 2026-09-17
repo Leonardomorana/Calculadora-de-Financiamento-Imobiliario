@@ -1,4 +1,7 @@
 
+import type { InccData } from './services/inccService';
+import type { Development } from './services/developmentService';
+
 export interface CalculationInput {
   salePrice: number;
   bonus: number;
@@ -7,6 +10,9 @@ export interface CalculationInput {
   inccRate: number;
   interestRate: number; // Taxa de juros anual para cálculo do Juros de Obra
   isImmediateFeesFree: boolean; // Controle de gratuidade documental no cenário Imediato
+  selectedDevelopmentId?: string;
+  developmentName?: string;
+  deliveryDate?: string;
 }
 
 export interface ScenarioResult {
@@ -36,4 +42,7 @@ export interface CalculationResult {
   immediateFinancing: ScenarioResult;
   keyDeliveryFinancing: ScenarioResult;
   downPayment: number; // Mantido para compatibilidade com o banner principal (reflete o input)
+  inccDetails?: InccData;
+  development?: Development | null;
 }
+

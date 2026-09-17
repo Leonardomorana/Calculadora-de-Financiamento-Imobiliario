@@ -3,7 +3,7 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import type { CalculationResult, ScenarioResult } from '../types';
 import { formatCurrency, formatCurrencyShort } from '../services/calculationService';
-import { Award, Clock, KeyRound, CheckCircle2, TrendingDown, TrendingUp, Coins, AlertCircle, FileText, Sparkles, Ban } from 'lucide-react';
+import { Award, Clock, KeyRound, CheckCircle2, TrendingDown, TrendingUp, Coins, AlertCircle, FileText, Sparkles, Ban, Building2 } from 'lucide-react';
 
 interface ScenarioCardProps {
   scenario: ScenarioResult;
@@ -306,7 +306,25 @@ const ResultsDisplay: React.FC<{ results: CalculationResult }> = ({ results }) =
 
   return (
     <div className="animate-fade-in space-y-8 pb-12">
-       <ComparisonSummary results={results} />
+      {results.development && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50/60 border border-blue-200/80 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 shadow-sm pdf-break-inside-avoid">
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-xl bg-brand-primary text-white shadow-md shadow-blue-900/10 shrink-0">
+              <Building2 size={22} />
+            </div>
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-brand-primary block">
+                Empreendimento Selecionado
+              </span>
+              <h3 className="text-lg sm:text-xl font-bold text-slate-800 leading-tight">
+                {results.development.name}
+              </h3>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ComparisonSummary results={results} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
         <ScenarioCard 
@@ -380,9 +398,20 @@ const ResultsDisplay: React.FC<{ results: CalculationResult }> = ({ results }) =
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <p className="text-center text-xs text-slate-400 mt-4">
-          Nota: Taxas de ITBI e Registro (POA/RS) incluídas se não houver isenção. Bônus aplicado apenas no "Imediato".
-        </p>
+        <div className="text-center text-xs text-slate-400 mt-4 space-y-1">
+          <p>
+            {results.inccDetails ? (
+              <span>
+                Correção projetada com base no INCC-M dos últimos 12 meses ({results.inccDetails.accumulated12m.toFixed(2).replace('.', ',')}% a.a. / {results.inccDetails.monthlyEquivalent.toFixed(2).replace('.', ',')}% a.m. • {results.inccDetails.periodDescription}).
+              </span>
+            ) : (
+              <span>Correção projetada com base na taxa de INCC mensal informada.</span>
+            )}
+          </p>
+          <p>
+            Nota: Taxas de ITBI e Registro (POA/RS) incluídas se não houver isenção. Bônus aplicado apenas no "Imediato".
+          </p>
+        </div>
       </div>
     </div>
   );

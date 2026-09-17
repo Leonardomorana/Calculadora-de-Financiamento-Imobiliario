@@ -1,5 +1,7 @@
 
 import type { CalculationInput, CalculationResult, ScenarioResult } from '../types';
+import type { InccData } from './inccService';
+import { DEVELOPMENTS, type Development } from './developmentService';
 
 export const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat('pt-BR', {
@@ -43,7 +45,7 @@ const calculateRegistryFeeRS = (value: number): number => {
   return 10000; // Teto estimado para valores muito altos
 };
 
-export const calculateFinancing = (input: CalculationInput): CalculationResult => {
+export const calculateFinancing = (input: CalculationInput, inccDetails?: InccData): CalculationResult => {
   const {
     salePrice,
     bonus,
@@ -175,9 +177,24 @@ export const calculateFinancing = (input: CalculationInput): CalculationResult =
     financingPercentage: keysFinancingPct
   };
 
+  let matchedDev: Development | null = null;
+  if (input.selectedDevelopmentId) {
+    matchedDev = DEVELOPMENTS.find(d => d.id === input.selectedDevelopmentId) || null;
+  }
+  if (!matchedDev && input.developmentName && input.deliveryDate) {
+    matchedDev = {
+      id: 'custom',
+      name: input.developmentName,
+      deliveryDate: input.deliveryDate,
+      deliveryIsoDate: '',
+    };
+  }
+
   return {
     immediateFinancing,
     keyDeliveryFinancing,
     downPayment: immediateDownPayment, // Valor para o banner principal (reflete o input com desconto)
+    inccDetails,
+    development: matchedDev,
   };
 };

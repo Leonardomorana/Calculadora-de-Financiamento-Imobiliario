@@ -1,22 +1,52 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { calculateFinancing, formatCurrency } from './services/calculationService';
+import { fetchLatest12MonthsINCC, type InccData } from './services/inccService';
+import { DEVELOPMENTS, calculateMonthsUntilDelivery, type Development } from './services/developmentService';
+import { DevelopmentSelector } from './components/DevelopmentSelector';
+import { InccDetailsModal } from './components/InccDetailsModal';
 import type { CalculationInput, CalculationResult } from './types';
 import InputField from './components/InputField';
 import ResultsDisplay from './components/ResultsDisplay';
-import { DollarSign, Percent, Banknote, Building, KeyRound, Info, BarChart2, Calculator, ArrowRight, TrendingDown, Tag } from 'lucide-react';
+import { DollarSign, Percent, Banknote, Building, KeyRound, Info, BarChart2, Calculator, ArrowRight, TrendingDown, Tag, RotateCcw, History } from 'lucide-react';
 
 const App: React.FC = () => {
+  const [inccData, setInccData] = useState<InccData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const defaultDev = DEVELOPMENTS[0];
+  const initialMonths = calculateMonthsUntilDelivery(defaultDev.deliveryDate);
+
   const [input, setInput] = useState<CalculationInput>({
     salePrice: 588200,
     bonus: 30000,
     financingPercentage: 80,
-    constructionMonths: 30,
-    inccRate: 0.5,
+    constructionMonths: initialMonths,
+    inccRate: 0.53, // Padrão baseado no equivalente mensal dos últimos 12 meses
     interestRate: 9.5, // Default interest rate
     isImmediateFeesFree: true, // Padrão: Isenção ativa
+    selectedDevelopmentId: defaultDev.id,
+    developmentName: defaultDev.name,
+    deliveryDate: defaultDev.deliveryDate,
   });
   const [results, setResults] = useState<CalculationResult | null>(null);
+
+  // Carrega automaticamente o INCC dos últimos 12 meses
+  useEffect(() => {
+    let isMounted = true;
+    fetchLatest12MonthsINCC().then((data) => {
+      if (isMounted) {
+        setInccData(data);
+        setInput((prev) => ({
+          ...prev,
+          inccRate: data.monthlyEquivalent,
+        }));
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -26,8 +56,33 @@ const App: React.FC = () => {
     }));
   };
 
+  const handleSelectDevelopment = (dev: Development | null, calculatedMonths?: number) => {
+    if (dev) {
+      setInput((prev) => ({
+        ...prev,
+        selectedDevelopmentId: dev.id,
+        developmentName: dev.name,
+        deliveryDate: dev.deliveryDate,
+        constructionMonths: calculatedMonths !== undefined ? calculatedMonths : prev.constructionMonths,
+      }));
+    } else {
+      setInput((prev) => ({
+        ...prev,
+        selectedDevelopmentId: 'custom',
+        developmentName: undefined,
+        deliveryDate: undefined,
+      }));
+    }
+  };
+
+  const handleRestoreIncc12m = () => {
+    if (inccData) {
+      setInput(prev => ({ ...prev, inccRate: inccData.monthlyEquivalent }));
+    }
+  };
+
   const handleCalculate = () => {
-    const calculatedResults = calculateFinancing(input);
+    const calculatedResults = calculateFinancing(input, inccData ?? undefined);
     setResults(calculatedResults);
     
     // Scroll suave para resultados em mobile (Ajustado para barra fixa)
@@ -189,11 +244,32 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Seção 2: Correção e Obras */}
+                {/* Seção 2: Empreendimento e Prazos */}
+                <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80">
+                  <DevelopmentSelector
+                    selectedId={input.selectedDevelopmentId || ''}
+                    onSelectDevelopment={handleSelectDevelopment}
+                    currentMonths={input.constructionMonths}
+                  />
+                </div>
+
+                {/* Seção 3: Correção e Obras */}
                 <div className="space-y-4">
-                   <div className="flex items-center gap-2 text-brand-dark/80 mb-2">
-                      <KeyRound size={16} />
-                      <h3 className="text-xs font-bold uppercase tracking-wider">Custos e Prazos</h3>
+                   <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2 text-brand-dark/80">
+                         <KeyRound size={16} />
+                         <h3 className="text-xs font-bold uppercase tracking-wider">Parâmetros de Financiamento da Obra</h3>
+                      </div>
+                      {inccData && (
+                        <button
+                          type="button"
+                          onClick={() => setIsModalOpen(true)}
+                          className="text-[11px] font-semibold text-brand-primary hover:text-brand-dark flex items-center gap-1 bg-blue-50 hover:bg-blue-100/70 px-2 py-0.5 rounded-md transition-colors"
+                        >
+                          <History size={12} />
+                          <span>Histórico 12m ({inccData.accumulated12m.toFixed(2).replace('.', ',')}%)</span>
+                        </button>
+                      )}
                    </div>
                    
                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -218,17 +294,61 @@ const App: React.FC = () => {
                         step="0.1"
                         inputClassName="text-sm sm:text-base"
                       />
-                      <InputField
-                        label="INCC Mensal"
-                        name="inccRate"
-                        value={input.inccRate}
-                        onChange={handleInputChange}
-                        suffix="% am"
-                        icon={<TrendingDown className="text-slate-400" size={14} />}
-                        type="number"
-                        step="0.01"
-                        inputClassName="text-sm sm:text-base"
-                      />
+                   </div>
+
+                   {/* Bloco dedicado do INCC dos últimos 12 meses */}
+                   <div className="p-3.5 bg-slate-50/90 rounded-xl border border-slate-200/80 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                         <div className="flex items-center gap-1.5">
+                            <TrendingDown className="text-rose-500" size={15} />
+                            <span className="text-xs font-bold text-slate-700">INCC (Últimos 12 meses)</span>
+                         </div>
+                         {inccData && input.inccRate !== inccData.monthlyEquivalent && (
+                            <button
+                              type="button"
+                              onClick={handleRestoreIncc12m}
+                              className="text-[10px] text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2 py-0.5 rounded flex items-center gap-1 transition-colors"
+                              title="Restaurar para a taxa oficial dos últimos 12 meses"
+                            >
+                              <RotateCcw size={10} />
+                              Usar 12m ({inccData.monthlyEquivalent}%)
+                            </button>
+                         )}
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 items-center">
+                        <InputField
+                          label="Taxa Mensal Utilizada"
+                          name="inccRate"
+                          value={input.inccRate}
+                          onChange={handleInputChange}
+                          suffix="% am"
+                          icon={<Percent className="text-slate-400" size={14} />}
+                          type="number"
+                          step="0.01"
+                          inputClassName="text-sm font-semibold"
+                        />
+                        <div className="bg-white p-2.5 rounded-lg border border-slate-200 flex flex-col justify-center">
+                          <span className="text-[10px] font-semibold text-slate-400 uppercase">Acumulado 12m</span>
+                          <span className="text-base font-bold text-slate-800">
+                            {inccData ? `${inccData.accumulated12m.toFixed(2).replace('.', ',')}%` : '6,61%'} <span className="text-[10px] font-normal text-slate-500">a.a.</span>
+                          </span>
+                          <span className="text-[9px] text-slate-400 truncate">
+                            {inccData ? inccData.periodDescription : 'Últimos 12 meses'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1 border-t border-slate-200/60">
+                         <span>Taxa equivalente composta aplicada nas projeções</span>
+                         <button
+                           type="button"
+                           onClick={() => setIsModalOpen(true)}
+                           className="text-brand-primary hover:underline font-medium"
+                         >
+                           Ver tabela
+                         </button>
+                      </div>
                    </div>
                 </div>
               </div>
@@ -294,6 +414,13 @@ const App: React.FC = () => {
             <ArrowRight size={20} />
           </button>
       </div>
+
+      {/* Modal de Detalhes do INCC 12 Meses */}
+      <InccDetailsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        inccData={inccData}
+      />
 
     </div>
   );
