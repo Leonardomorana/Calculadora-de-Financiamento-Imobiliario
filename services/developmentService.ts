@@ -37,6 +37,18 @@ export const DEVELOPMENTS: Development[] = [
     deliveryDate: '28/02/2027',
     deliveryIsoDate: '2027-02-28',
   },
+  {
+    id: 'duetto-fase-1',
+    name: 'Duetto Fase 1',
+    deliveryDate: '30/05/2028',
+    deliveryIsoDate: '2028-05-30',
+  },
+  {
+    id: 'duetto-fase-2',
+    name: 'Duetto Fase 2',
+    deliveryDate: '30/03/2028',
+    deliveryIsoDate: '2028-03-30',
+  },
 ];
 
 /**
